@@ -1,0 +1,28 @@
+{% extends 'auctions/layout.html' %}
+
+{% block body %}
+
+    <div>
+        <p><h1>Listing: {{ item.item }}</h1></p>
+        <img src="{{ item.image.url }}" style="width:350px;height:400px;">
+        <p> {{item.description }} </p>
+        <p><h2>${{ item.price }}</h2></p>
+    </div>
+
+    <h3>Deatils</h3>
+    <ul>
+        <li> {{ item.arthur }} </li>
+        
+        {% if item.category %}
+            <li>Category: {{ item.category }}</li>
+        {% else %}
+            <li>Category: No Category Listed</li>
+        
+        {% endif %}
+    
+        
+    
+    </ul>
+
+
+{% endblock body %}
