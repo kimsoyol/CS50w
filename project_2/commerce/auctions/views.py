@@ -3,6 +3,7 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django.views.generic.edit import CreateView
 
 from .models import User, Listing
 
@@ -74,3 +75,18 @@ def item(request, item_id):
         "item": item
 
     })
+
+class Create(CreateView):
+        model = Listing
+        fields = ( "item", "price", "description", "category", "image")
+        template_name = "auctions/create.html"
+
+        def form_valid(self, form):
+            form.instance.author = self.request.user
+            return super().form_valid(form)
+        
+
+
+
+def watchlist(request):
+    pass

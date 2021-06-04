@@ -11,6 +11,11 @@
             <div class="col-4 mt-4">
                 <div><a href="{% url 'item' item.id %}"><h2>{{ item.item }}</h2></a></div>
                 <div>Price: ${{ item.price }}</div>
+                {% if item.description %}
+                    <div>Description: {{ item.description }}</div>
+                {% else %}
+                    
+                {% endif %}
             </div>
         </div>
         {% endfor %}
