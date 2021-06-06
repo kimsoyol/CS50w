@@ -69,12 +69,21 @@ def register(request):
 
 
 def item(request, item_id):
-    item = Listing.objects.get(id=item_id)
-
-    return render(request, "auctions/item.html",{
-        "item": item
-
-    })
+    if request.method == "POST":
+        item = Listing.objects.get(id=item_id)
+        f = WatchList(author=request.user, item=item)
+        f.save()
+        return HttpResponseRedirect(reverse("auctions/item.html",{
+            "item": item,
+            "message": "Successfully add to your Watchlist."
+        }))
+    else:
+        item = Listing.objects.get(id=item_id)
+        watchitem = WatchList.objects.get(item_id=item.id, author_id=request.user.id)
+        return render(request, "auctions/item.html",{
+            "item": item,
+            "watchitem": watchitem
+        })
 
 class Create(CreateView):
         model = Listing
@@ -87,14 +96,8 @@ class Create(CreateView):
         
 
 def watchlist(request):
-    if request.method == "POST":
-        item_id = request.POST["item"]
-        user = User
-    else:
-        items = WatchList.objects.filter(author=request.user.id)
-      
-
-        return render(request, "auctions/watchlist.html",{
-            "items":items,
-        })
-        
+    items = WatchList.objects.filter(author=request.user.id)
+    return render(request, "auctions/watchlist.html",{
+        "items":items,
+    })
+    

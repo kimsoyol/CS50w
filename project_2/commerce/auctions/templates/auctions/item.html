@@ -2,16 +2,29 @@
 
 {% block body %}
 
+    {% if message %}
+    <div class="alert alert-success" role="alert">{{ message }}</div>
+    {% endif %}
+
+    {% if item.id == watchitem.id %}
+        <p>This item is already in your Watchlist.</p>
+    {% else %}
+        <form action="{% url 'item' item.id %}" method='POST'>
+            {% csrf_token %}
+            <button type='submit'>Add this item to your watchlist</button>
+        </form>
+    {% endif %}
+
     <div>
         <p><h1>Listing: {{ item.item }}</h1></p>
         <img src="{{ item.image.url }}" style="width:350px;height:400px;">
-        <p> {{item.description }} </p>
         <p><h2>${{ item.price }}</h2></p>
     </div>
 
     <h3>Deatils</h3>
     <ul>
         <li> {{ item.author }} </li>
+        <li> {{item.description }} </li>
         
         {% if item.category %}
             <li>Category: {{ item.category }}</li>
@@ -20,7 +33,7 @@
         
         {% endif %}
     
-        
+        <li class="text-black-50">Created {{ item.date }}</li>
     
     </ul>
 
