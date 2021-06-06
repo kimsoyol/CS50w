@@ -17,6 +17,17 @@ class Listing(models.Model):
 
     def get_absolute_url(self):
         return reverse("item", kwargs={"item_id": self.pk})
+
+    def __str__(self):
+        return f"{self.item}" 
+    
+    
+class WatchList(models.Model):
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    item = models.ForeignKey(Listing, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.author} {self.item}"
     
 
 class Bids(models.Model):

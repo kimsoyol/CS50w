@@ -2,14 +2,15 @@
 {% load crispy_forms_tags %}
 
 {% block body %}
+<div class="content-section">
     <form action="{% url 'create' %}" method='POST' enctype="multipart/form-data" >
         {% csrf_token %}
         <fieldset class="form-group">
             {{ form|crispy }}
         </fieldset>
-
-
-        <input type="submit" value="Submit">
+        <div class="form-group">
+            <input class="btn btn-outline-info" type="submit" value="Submit">
+        </div>
     </form>
-
+</div>
 {% endblock body %}

@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic.edit import CreateView
 
-from .models import User, Listing
+from .models import User, Listing, WatchList
 
 
 def index(request):
@@ -86,7 +86,13 @@ class Create(CreateView):
             return super().form_valid(form)
         
 
-
-
 def watchlist(request):
-    pass
+    if request.method == "POST":
+        item_id = request.POST["item"]
+        user = User
+    else:
+        items = Listing.objects.filter(author=request.user.id)
+        return render(request, "auctions/index.html",{
+            "items":items,
+        })
+        
