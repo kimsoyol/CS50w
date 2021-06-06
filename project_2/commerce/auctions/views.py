@@ -91,8 +91,10 @@ def watchlist(request):
         item_id = request.POST["item"]
         user = User
     else:
-        items = Listing.objects.filter(author=request.user.id)
-        return render(request, "auctions/index.html",{
+        items = WatchList.objects.filter(author=request.user.id)
+      
+
+        return render(request, "auctions/watchlist.html",{
             "items":items,
         })
         
