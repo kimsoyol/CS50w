@@ -70,20 +70,28 @@ def register(request):
 
 def item(request, item_id):
     if request.method == "POST":
-        item = Listing.objects.get(id=item_id)
-        f = WatchList(author=request.user, item=item)
+        f = WatchList.objects.create(author_id=request.user.id, item_id=item_id)
+        
         f.save()
-        return HttpResponseRedirect(reverse("auctions/item.html",{
-            "item": item,
+        return HttpResponseRedirect(reverse("item", args=[item_id]),{
             "message": "Successfully add to your Watchlist."
-        }))
+        })
     else:
         item = Listing.objects.get(id=item_id)
-        watchitem = WatchList.objects.get(item_id=item.id, author_id=request.user.id)
-        return render(request, "auctions/item.html",{
-            "item": item,
-            "watchitem": watchitem
-        })
+        try:
+            watchitem = WatchList.objects.get(item_id=item.id, author_id=request.user.id)
+        except WatchList.DoesNotExist:
+            return render(request, "auctions/item.html",{
+                "item": item,
+            })
+        else:
+            
+
+            return render(request, "auctions/item.html",{
+                    "item": item,
+                    "watchitem": watchitem
+                })
+
 
 class Create(CreateView):
         model = Listing
@@ -97,7 +105,14 @@ class Create(CreateView):
 
 def watchlist(request):
     items = WatchList.objects.filter(author=request.user.id)
+    
     return render(request, "auctions/watchlist.html",{
         "items":items,
     })
+    
+def removeWatchList(request, item_id):
+    if request.method == "POST":
+        f = WatchList.objects.get(item_id=item_id, author_id=request.user.id)
+        f.delete()
+        return HttpResponseRedirect(reverse("index"))
     

@@ -6,12 +6,16 @@
     <div class="alert alert-success" role="alert">{{ message }}</div>
     {% endif %}
 
-    {% if item.id == watchitem.id %}
+    {% if item.id == watchitem.item.id %}
         <p>This item is already in your Watchlist.</p>
-    {% else %}
-        <form action="{% url 'item' item.id %}" method='POST'>
+        <form action="{% url 'removeWatchList' item.id %}" method="POST" for="r">
             {% csrf_token %}
-            <button type='submit'>Add this item to your watchlist</button>
+            <input type="submit" value="Remove" class="btn btn-danger" id="r">
+        </form>
+    {% else %}
+        <form action="{% url 'item' item.id %}" method="POST" for="a">
+            {% csrf_token %}
+            <input type="submit" value="Add this item to your watchlist" id="a">
         </form>
     {% endif %}
 
@@ -20,11 +24,11 @@
         <img src="{{ item.image.url }}" style="width:350px;height:400px;">
         <p><h2>${{ item.price }}</h2></p>
     </div>
+    <li> {{item.description }} </li>
 
     <h3>Deatils</h3>
     <ul>
-        <li> {{ item.author }} </li>
-        <li> {{item.description }} </li>
+        <li>Listed by: {{ item.author }} </li>
         
         {% if item.category %}
             <li>Category: {{ item.category }}</li>

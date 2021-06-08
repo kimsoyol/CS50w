@@ -27,7 +27,7 @@ class WatchList(models.Model):
     item = models.ForeignKey(Listing, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.author} {self.item}"
+        return f"{self.author} {self.item}(id:{self.item_id})"
     
 
 class Bids(models.Model):
