@@ -5,7 +5,18 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic.edit import CreateView
 
-from .models import User, Listing, WatchList
+from .models import User, Listing, WatchList, Comment
+
+from django import forms
+
+class commentForm(forms.ModelForm):
+    text = forms.CharField(widget=forms.Textarea(
+        attrs={'style': "width: 300px; height: 100px; right: 150px", 'placeholder': 'Your message'}
+        ))
+
+    class Meta:
+        model = Comment
+        fields = ['text']
 
 
 def index(request):
@@ -71,7 +82,6 @@ def register(request):
 def item(request, item_id):
     if request.method == "POST":
         f = WatchList.objects.create(author_id=request.user.id, item_id=item_id)
-        
         f.save()
         return HttpResponseRedirect(reverse("item", args=[item_id]),{
             "message": "Successfully add to your Watchlist."
@@ -83,11 +93,13 @@ def item(request, item_id):
         except WatchList.DoesNotExist:
             return render(request, "auctions/item.html",{
                 "item": item,
+                "form": commentForm
             })
         else:
             return render(request, "auctions/item.html",{
                     "item": item,
-                    "watchitem": watchitem
+                    "watchitem": watchitem,
+                    "form": commentForm
                 })
 
 
@@ -113,4 +125,13 @@ def removeWatchList(request, item_id):
         f = WatchList.objects.get(item_id=item_id, author_id=request.user.id)
         f.delete()
         return HttpResponseRedirect(reverse("index"))
-    
+
+
+def comment(request, item_id):
+    if request.method == 'POST':
+        form = commentForm(request.POST)
+        if form.is_valid():
+            com = form.cleaned_data["text"]
+            f = Comment.objects.create(text=com, post_id=item_id, author_id=request.user.id)
+            f.save()
+        return HttpResponseRedirect(reverse("item", args=[item_id]))

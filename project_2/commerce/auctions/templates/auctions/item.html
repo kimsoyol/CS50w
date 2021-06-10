@@ -1,45 +1,80 @@
 {% extends 'auctions/layout.html' %}
 
 {% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-6">
+            {% if message %}
+            <div class="alert alert-success" role="alert">{{ message }}</div>
+            {% endif %}
 
-    {% if message %}
-    <div class="alert alert-success" role="alert">{{ message }}</div>
-    {% endif %}
+            {% if item.id == watchitem.item.id %}
+                <p>This item is already in your Watchlist.</p>
+                <form action="{% url 'removeWatchList' item.id %}" method="POST" for="r">
+                    {% csrf_token %}
+                    <input type="submit" value="Remove" class="btn btn-danger" id="r">
+                </form>
+            {% else %}
+                <form action="{% url 'item' item.id %}" method="POST" for="a">
+                    {% csrf_token %}
+                    <input type="submit" value="Add this item to your watchlist" id="a">
+                </form>
+            {% endif %}
 
-    {% if item.id == watchitem.item.id %}
-        <p>This item is already in your Watchlist.</p>
-        <form action="{% url 'removeWatchList' item.id %}" method="POST" for="r">
-            {% csrf_token %}
-            <input type="submit" value="Remove" class="btn btn-danger" id="r">
-        </form>
-    {% else %}
-        <form action="{% url 'item' item.id %}" method="POST" for="a">
-            {% csrf_token %}
-            <input type="submit" value="Add this item to your watchlist" id="a">
-        </form>
-    {% endif %}
+            <div>
+                <p><h1>Listing: {{ item.item }}</h1></p>
+                <img src="{{ item.image.url }}" style="width:350px;height:400px;">
+                <p><h2>${{ item.price }}</h2></p>
+            </div>
+            <li> {{item.description }} </li>
 
-    <div>
-        <p><h1>Listing: {{ item.item }}</h1></p>
-        <img src="{{ item.image.url }}" style="width:350px;height:400px;">
-        <p><h2>${{ item.price }}</h2></p>
+            <h3>Deatils</h3>
+            <ul>
+                <li>Listed by: {{ item.author }} </li>
+                
+                {% if item.category %}
+                    <li>Category: {{ item.category }}</li>
+                {% else %}
+                    <li>Category: No Category Listed</li>
+                
+                {% endif %}
+            
+                <li class="text-black-50">Created {{ item.date }}</li>
+            
+            </ul>
+        </div>
+
+
+        <div class="col-sm-6">
+            <form action="{% url 'comment' item.id %}" method="POST" for="c">
+                {% csrf_token %}
+                <h4>Add new Comment</h4>
+                <div>
+                    <div>
+                        {{ form.text }}
+                    </div>
+                </div>  	
+                <button type="submit" class="btn btn-secondary" id="c">Submit</button>
+            </form>
+            <hr>
+            <h5>Comments</h5>
+            {% if item.comments.all %}
+            <div>
+            <hr>
+            {% for comment in item.comments.all %}
+                <h6>{{ comment.author }}</h6>
+                <p>{{ comment.text }}</p>
+                <ul class="list-unstyled list-inline media-detail pull-left">
+                    <li><i class="caleandar"></i>{{ comment.date }}</li>
+                </ul>
+                <hr>
+            {% endfor %}
+            </div>
+            {% else %}
+                comments not found.
+            {% endif %}
+
+        </div>
     </div>
-    <li> {{item.description }} </li>
-
-    <h3>Deatils</h3>
-    <ul>
-        <li>Listed by: {{ item.author }} </li>
-        
-        {% if item.category %}
-            <li>Category: {{ item.category }}</li>
-        {% else %}
-            <li>Category: No Category Listed</li>
-        
-        {% endif %}
-    
-        <li class="text-black-50">Created {{ item.date }}</li>
-    
-    </ul>
-
-
+</div>
 {% endblock body %}

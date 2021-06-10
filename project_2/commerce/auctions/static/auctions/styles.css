@@ -6,3 +6,11 @@ body {
     position: absolute;
     display: flex;
 }
+
+
+
+#b {
+    position: absolute;
+    top: 3px;
+    right: 150px;
+  }
