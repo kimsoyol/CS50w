@@ -1,3 +1,4 @@
+from django.core.files.storage import default_storage
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -16,13 +17,12 @@ def index(request):
 
 
 def entry(request, title):
-    # c
     entry = util.get_entry(title)
 
-    if not entry:
+    if entry is None:
         return render(request, "encyclopedia/entry.html", {
-            "ttile" : "error",
-            "context" : "Sorry, the page you are looking for could not be found.",
+            "title" : "Error",
+            "message" : "Sorry, the page you are looking for could not be found.",
         })
 
     else:     
@@ -33,7 +33,6 @@ def entry(request, title):
 
 
 def search(request):
-    #if request.method == "GET":
     titles = util.list_entries()
     results = []
 
@@ -58,13 +57,13 @@ def create_page(request):
             title = form.cleaned_data["title"]
             content = form.cleaned_data["content"]
             entries = util.list_entries()
-            if title.upper() in entries:
+            if title in entries:
                 return render(request, "encyclopedia/create_page.html",{
                         'pageForm': forms.CreatePageForm(),
                         'error': "Page Already exit!"
                     })
             else:
-                contentData = ('#' + title) + '\n' + content
+                contentData = ('#' + ' ' + title) + '\n' + '\n'+ content
                 util.save_entry(title, contentData)
                 page = util.get_entry(title)
                 pageConvert = md.convert(page)
@@ -80,22 +79,32 @@ def create_page(request):
 def edit_page(request, title):
     if request.method == "GET":
         oldContent = util.get_entry(title)
-        oldForm = forms.EditPageForm(initial={'title': title, 'content': oldContent})
-        return render(request, "encyclopedia/edit_page.html", {
-            'editForm': oldForm,
-        })   
+
+        if oldContent is None:
+            return render(request, "encyclopedia/entry.html", {
+            "title" : "Error",
+            "context" : "Sorry, the page you are looking for could not be found.",
+        })
+        else:
+            editContent = oldContent.split("\n",2)[2]
+            oldForm = forms.EditPageForm(initial={'title': title, 'content': editContent})
+            return render(request, "encyclopedia/edit_page.html", {
+                'editForm': oldForm,
+            })   
 
     else:
         form = forms.EditPageForm(request.POST)
         if form.is_valid():
-            title = form.cleaned_data["title"]
+            newtitle = form.cleaned_data["title"]
             content = form.cleaned_data["content"]
-            util.save_entry(title, content)
-            return render(request, "encyclopedia/entry.html",{
-                'title': title,
-                'context': md.convert(content)
-            })
-            
+            contentData = ('#' + ' ' + newtitle) + '\n' + '\n'+ content
+            if newtitle != title:
+                filename = f"entries/{title}.md"
+                if default_storage.exists(filename):
+                    default_storage.delete(filename)
+            util.save_entry(newtitle, contentData)
+            return HttpResponseRedirect(reverse("encyclopedia:entry", args=[newtitle]))
+
 
 def random_page(request):
     title = choice(util.list_entries())

@@ -36,3 +36,4 @@ class Bids(models.Model):
 
 class Comment(models.Model):
     pass
+

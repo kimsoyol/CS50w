@@ -85,8 +85,6 @@ def item(request, item_id):
                 "item": item,
             })
         else:
-            
-
             return render(request, "auctions/item.html",{
                     "item": item,
                     "watchitem": watchitem

@@ -1,5 +1,8 @@
 {% extends "encyclopedia/layout.html" %}
 
+
+
+
 {% block title %}
 
     {{ title }}
@@ -7,8 +10,19 @@
 
 {% block body %}
 
-    {{ context | safe }}
+    {% if message %}
 
-    <a href=/wiki/{{ title }}/edit>Edit Page</a>
+    <h2>{{ title }}</h2>
+    <p>{{ message }}</p>
+
+    {% else %}
+
+        {{ context | safe }}
+
+        <a href="{% url 'encyclopedia:edit_page' title %}">Edit Page</a>
+
+    {% endif %}
+
 
 {% endblock %}
+
