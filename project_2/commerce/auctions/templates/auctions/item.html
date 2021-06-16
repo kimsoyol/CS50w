@@ -2,17 +2,20 @@
 
 {% block body %}
 <div class="container-fluid">
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <div{% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %}>{{ message }}</div>
+            {% endfor %}
+    </ul>
+    {% endif %}
     <div class="row">
         <div class="col-sm-6">
-            {% if message %}
-            <div class="alert alert-success" role="alert">{{ message }}</div>
-            {% endif %}
-
             <div>
                 {% if item.id == watchitem.item.id %}
-                    <p>This item is already in your Watchlist.</p>
                     <form action="{% url 'removeWatchList' item.id %}" method="POST" for="r">
                         {% csrf_token %}
+                        This item is already in your Watchlist.
                         <input type="submit" value="Remove" class="btn btn-danger" id="r">
                     </form>
                 {% else %}

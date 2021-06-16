@@ -1,14 +1,15 @@
 from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic.edit import CreateView
 from django.db.models import Max
+from django import forms
 
 from .models import User, Listing, WatchList, Comment, Bid
 
-from django import forms
 
 class commentForm(forms.ModelForm):
     text = forms.CharField(widget=forms.Textarea(
@@ -91,13 +92,14 @@ def register(request):
 def item(request, item_id):
     if request.method == "POST":
         WatchList.objects.create(author_id=request.user.id, item_id=item_id)
-        return HttpResponseRedirect(reverse("item", args=[item_id]),{
-            "message": "Successfully add to your Watchlist."
-        })
+        messages.success(request, "Successfully add to your Watchlist.")
+        print(request.POST)
+        return HttpResponseRedirect(reverse("item", args=[item_id]))
     else:
 
         # getting specific item
         item = Listing.objects.get(id=item_id)
+        message = ''
 
         # getting the Highest bid amount of an item
         if item.bidItem.all():
@@ -120,6 +122,7 @@ def item(request, item_id):
                 "bidsform": bidForm,
                 "highest": highest,
                 "highestBidder": highestBidder,
+                "message": message
             })
         else:
             return render(request, "auctions/item.html",{
@@ -128,7 +131,8 @@ def item(request, item_id):
                     "form": commentForm,
                     "bidsform": bidForm,
                     "highest": highest,
-                    "highestBidder": highestBidder
+                    "highestBidder": highestBidder,
+                    "message": message
                 })
 
 
@@ -169,12 +173,24 @@ def comment(request, item_id):
 
 def bid(request, item_id):
     if request.method == 'POST':
-
-        # getting bid and save
         form = bidForm(request.POST)
         if form.is_valid():
             amount = form.cleaned_data["amount"]
-            Bid.objects.create(amount=amount, item_id=item_id, author_id=request.user.id)
-        return HttpResponseRedirect(reverse("item", args=[item_id]))
+            item = Listing.objects.get(id=item_id)
+            price = float(item.price)
+            highest =  Bid.objects.filter(item_id=item_id).aggregate(Max('amount'))['amount__max']
+            if not highest and float(amount) > price:
+                Bid.objects.create(amount=amount, item_id=item_id, author_id=request.user.id)
+                messages.success(request, "Your bid was added.")
+                return HttpResponseRedirect(reverse("item", args=[item_id]))
+            elif highest and float(amount) > float(highest):
+                Bid.objects.create(amount=amount, item_id=item_id, author_id=request.user.id)
+                messages.success(request, "Your bid was added.")
+                return HttpResponseRedirect(reverse("item", args=[item_id]))
+            else:
+                messages.warning(request, "Your bid must be higher than current bid.")
+                return HttpResponseRedirect(reverse("item", args=[item_id]))
+        
+
 
 
