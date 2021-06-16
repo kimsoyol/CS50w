@@ -30,10 +30,8 @@ class bidForm(forms.ModelForm):
         fields = ['amount']
 
 def index(request):
-    if not request.user.is_authenticated:
-        return HttpResponseRedirect(reverse("login"))
     return render(request, "auctions/index.html", {
-        "items": Listing.objects.all
+        "items": Listing.objects.filter(active=True)
     })
 
 
@@ -90,17 +88,16 @@ def register(request):
 
 
 def item(request, item_id):
+    # adding to WatchList
     if request.method == "POST":
         WatchList.objects.create(author_id=request.user.id, item_id=item_id)
         messages.success(request, "Successfully add to your Watchlist.")
-        print(request.POST)
         return HttpResponseRedirect(reverse("item", args=[item_id]))
     else:
 
         # getting specific item
         item = Listing.objects.get(id=item_id)
-        message = ''
-
+        author = str(item.author)
         # getting the Highest bid amount of an item
         if item.bidItem.all():
             highest = float(item.bidItem.filter(item_id=item_id).aggregate(Max('amount'))['amount__max'])
@@ -111,29 +108,54 @@ def item(request, item_id):
             highest = 0
             highestBidder = ''
 
+        if not item.active:
+            print("item is not active")
 
-        # Handling for an item is in Watchlist or not
-        try:
-            watchitem = WatchList.objects.get(item_id=item.id, author_id=request.user.id)
-        except WatchList.DoesNotExist:
-            return render(request, "auctions/item.html",{
-                "item": item,
-                "form": commentForm,
-                "bidsform": bidForm,
-                "highest": highest,
-                "highestBidder": highestBidder,
-                "message": message
-            })
-        else:
-            return render(request, "auctions/item.html",{
+            print("Highest bidder and user is same")
+        
+        if author == request.user.username:
+            print("author and user is same")
+
+        if item.active and (highestBidder == request.user.username or author == request.user.username):
+
+            if highestBidder == request.user.username and not item.active :
+                messages.success(request, "You have won the bid.")
+            # Handling for an item is in Watchlist or not
+            try:
+                watchitem = WatchList.objects.get(item_id=item.id, author_id=request.user.id)
+            except WatchList.DoesNotExist:
+                return render(request, "auctions/item.html",{
                     "item": item,
-                    "watchitem": watchitem,
                     "form": commentForm,
                     "bidsform": bidForm,
                     "highest": highest,
                     "highestBidder": highestBidder,
-                    "message": message
+                    'author': author
                 })
+            else:
+                return render(request, "auctions/item.html",{
+                        "item": item,
+                        "watchitem": watchitem,
+                        "form": commentForm,
+                        "bidsform": bidForm,
+                        "highest": highest,
+                        "highestBidder": highestBidder,
+                        'author': author,
+
+                    })
+            
+        else:       
+            messages.info(request, "The item is no longer available.")
+            return HttpResponseRedirect(reverse('index'))
+            
+            
+
+
+def removeListing(request, item_id):
+    if request.method == 'POST':
+        f = Listing.objects.get(item_id=item_id, author_id=request.user.id)
+        f.active = False
+    return HttpResponseRedirect(reverse('item', args=[item_id]))
 
 
 class Create(CreateView):
@@ -152,7 +174,8 @@ def watchlist(request):
     return render(request, "auctions/watchlist.html",{
         "items":items,
     })
-    
+
+
 def removeWatchList(request, item_id):
     if request.method == "POST":
         f = WatchList.objects.get(item_id=item_id, author_id=request.user.id)
@@ -173,12 +196,20 @@ def comment(request, item_id):
 
 def bid(request, item_id):
     if request.method == 'POST':
+
+        # getting user bid
         form = bidForm(request.POST)
         if form.is_valid():
             amount = form.cleaned_data["amount"]
+
+            # getting starting price 
             item = Listing.objects.get(id=item_id)
             price = float(item.price)
+
+            #getting highest bid
             highest =  Bid.objects.filter(item_id=item_id).aggregate(Max('amount'))['amount__max']
+
+            # comparing bids and save the highest bid
             if not highest and float(amount) > price:
                 Bid.objects.create(amount=amount, item_id=item_id, author_id=request.user.id)
                 messages.success(request, "Your bid was added.")

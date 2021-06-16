@@ -3,7 +3,7 @@ from django.contrib import admin
 from .models import Listing, User, WatchList, Comment, Bid
 
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ('id','item', 'price', 'author')
+    list_display = ('id','item', 'price', 'author', 'active')
 
 class WatchedItemAdmin(admin.ModelAdmin):
     list_display = ('item','author')

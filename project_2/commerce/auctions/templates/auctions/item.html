@@ -11,21 +11,31 @@
     {% endif %}
     <div class="row">
         <div class="col-sm-6">
-            <div>
-                {% if item.id == watchitem.item.id %}
-                    <form action="{% url 'removeWatchList' item.id %}" method="POST" for="r">
-                        {% csrf_token %}
-                        This item is already in your Watchlist.
-                        <input type="submit" value="Remove" class="btn btn-danger" id="r">
-                    </form>
-                {% else %}
-                    <form action="{% url 'item' item.id %}" method="POST" for="a">
-                        {% csrf_token %}
-                        <input type="submit" value="Add this item to your watchlist" id="a">
-                    </form>
-                {% endif %}
-            </div>
+            {% if author == user.username %}
+                <div>
+                    {% if item.active %}
+                        <form action="{% url 'removeListing' item.id %}"></form>
+                            <input type="submit" value="Deactivate" class="btn btn-danger">
+                    {% endif %}
+                </div>
 
+            {% else %}
+                <!--add and remove from Watchlist-->
+                <div>
+                    {% if item.id == watchitem.item.id %}
+                        <form action="{% url 'removeWatchList' item.id %}" method="POST" for="r">
+                            {% csrf_token %}
+                            This item is already in your Watchlist.
+                            <input type="submit" value="Remove" class="btn btn-danger" id="r">
+                        </form>
+                    {% else %}
+                        <form action="{% url 'item' item.id %}" method="POST" for="a">
+                            {% csrf_token %}
+                            <input type="submit" value="Add this item to your watchlist" id="a">
+                        </form>
+                    {% endif %}
+                </div>
+            {% endif %}
             <!--Liting item-->
             <div>
                 <p><h1>Listing: {{ item.item }}</h1></p>
@@ -45,7 +55,7 @@
                                 <br>
                                 Current bid: <strong>${{ highest }}</strong> by 
                                 {% ifequal user.username highestBidder %}
-                                    <strong>You</strong>
+                                    <strong>You.</strong>
                                 {% else %}
                                     <strong>{{ highestBidder }}</strong>
                                 {% endifequal %}

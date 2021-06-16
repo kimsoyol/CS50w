@@ -14,6 +14,7 @@ class Listing(models.Model):
     description = models.TextField(max_length=50, blank=True)
     category = models.CharField(max_length=100, blank=True)
     date = models.DateTimeField(auto_now_add=True)
+    active = models.BooleanField(default=True)
 
     def get_absolute_url(self):
         return reverse("item", kwargs={"item_id": self.pk})
