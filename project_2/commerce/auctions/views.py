@@ -4,8 +4,9 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic.edit import CreateView
+from django.db.models import Max
 
-from .models import User, Listing, WatchList, Comment
+from .models import User, Listing, WatchList, Comment, Bid
 
 from django import forms
 
@@ -18,6 +19,12 @@ class commentForm(forms.ModelForm):
         model = Comment
         fields = ['text']
 
+class bidForm(forms.ModelForm):
+    amount = forms.DecimalField()
+
+    class Meta:
+        model = Comment
+        fields = ['amount']
 
 def index(request):
     if not request.user.is_authenticated:
@@ -88,18 +95,28 @@ def item(request, item_id):
         })
     else:
         item = Listing.objects.get(id=item_id)
+        # getting the Highest bid amount
+        highest = float(item.bidItem.filter(item_id=item_id).aggregate(Max('amount'))['amount__max'])
+        # getting the Highest Bidder
+        highestBidder = item.bidItem.get(amount=highest)
         try:
             watchitem = WatchList.objects.get(item_id=item.id, author_id=request.user.id)
         except WatchList.DoesNotExist:
             return render(request, "auctions/item.html",{
                 "item": item,
-                "form": commentForm
+                "form": commentForm,
+                "bidsform": bidForm,
+                "highest": highest,
+                "highestBidder": highestBidder.author
             })
         else:
             return render(request, "auctions/item.html",{
                     "item": item,
                     "watchitem": watchitem,
-                    "form": commentForm
+                    "form": commentForm,
+                    "bidsform": bidForm,
+                    "highest": highest,
+                    "highestBidder": highestBidder.author
                 })
 
 
@@ -133,5 +150,15 @@ def comment(request, item_id):
         if form.is_valid():
             com = form.cleaned_data["text"]
             f = Comment.objects.create(text=com, post_id=item_id, author_id=request.user.id)
+            f.save()
+        return HttpResponseRedirect(reverse("item", args=[item_id]))
+
+
+def bid(request, item_id):
+    if reques.method == 'POST':
+        form = bidForm(request.POST)
+        if form.is_valid():
+            amount = form.cleared_data["amount"]
+            f = Bid.objects.create(amount=amount, item_id=item_id, author=request.user.id)
             f.save()
         return HttpResponseRedirect(reverse("item", args=[item_id]))

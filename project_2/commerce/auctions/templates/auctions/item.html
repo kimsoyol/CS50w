@@ -7,27 +7,50 @@
             {% if message %}
             <div class="alert alert-success" role="alert">{{ message }}</div>
             {% endif %}
-
-            {% if item.id == watchitem.item.id %}
-                <p>This item is already in your Watchlist.</p>
-                <form action="{% url 'removeWatchList' item.id %}" method="POST" for="r">
-                    {% csrf_token %}
-                    <input type="submit" value="Remove" class="btn btn-danger" id="r">
-                </form>
-            {% else %}
-                <form action="{% url 'item' item.id %}" method="POST" for="a">
-                    {% csrf_token %}
-                    <input type="submit" value="Add this item to your watchlist" id="a">
-                </form>
-            {% endif %}
+            <div>
+                {% if item.id == watchitem.item.id %}
+                    <p>This item is already in your Watchlist.</p>
+                    <form action="{% url 'removeWatchList' item.id %}" method="POST" for="r">
+                        {% csrf_token %}
+                        <input type="submit" value="Remove" class="btn btn-danger" id="r">
+                    </form>
+                {% else %}
+                    <form action="{% url 'item' item.id %}" method="POST" for="a">
+                        {% csrf_token %}
+                        <input type="submit" value="Add this item to your watchlist" id="a">
+                    </form>
+                {% endif %}
+            </div>
 
             <div>
                 <p><h1>Listing: {{ item.item }}</h1></p>
                 <img src="{{ item.image.url }}" style="width:350px;height:400px;">
                 <p><h2>${{ item.price }}</h2></p>
             </div>
-            <li> {{item.description }} </li>
+            <p> {{item.description }} </p>
 
+            <!--bid-->
+            <div class='row'>
+                <div class='col'>
+                    <form action="{% url 'bid' item.id %}" method='POST'>
+                        {% csrf_token %}
+                        {% if item.bidItem.all %}
+                            <div>
+                                Current bid: ${{ highest }} by {{ highestBidder }}
+                                <br>
+                                {{ item.bidItem.count }}
+                            </div>
+                        {% else %}
+                            <div class='p-2'>no Bid yet.</div>
+                        {% endif %}
+
+                        {{ bidsform.amount }}
+                        <button type='submit' class='btn btn-success'>Bid</button>
+                    </form>
+                </div>
+            </div>
+
+            <!--item detail-->
             <h3>Deatils</h3>
             <ul>
                 <li>Listed by: {{ item.author }} </li>
@@ -36,15 +59,13 @@
                     <li>Category: {{ item.category }}</li>
                 {% else %}
                     <li>Category: No Category Listed</li>
-                
                 {% endif %}
             
                 <li class="text-black-50">Created {{ item.date }}</li>
-            
             </ul>
         </div>
 
-
+        <!--comment-->
         <div class="col-sm-6">
             <form action="{% url 'comment' item.id %}" method="POST" for="c">
                 {% csrf_token %}
@@ -71,9 +92,8 @@
             {% endfor %}
             </div>
             {% else %}
-                comments not found.
+                No Comments Found
             {% endif %}
-
         </div>
     </div>
 </div>

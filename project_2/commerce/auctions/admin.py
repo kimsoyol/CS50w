@@ -1,11 +1,24 @@
 from django.contrib import admin
 
-from .models import Listing, User, WatchList, Comment
+from .models import Listing, User, WatchList, Comment, Bid
 
+class ItemAdmin(admin.ModelAdmin):
+    list_display = ('id','item', 'price', 'author')
 
-admin.site.register(Listing)
+class WatchedItemAdmin(admin.ModelAdmin):
+    list_display = ('item','author')
+
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('post', 'text', 'author')
+
+class BidAdmin(admin.ModelAdmin):
+    list_display = ('item', 'amount', 'author')
+
+admin.site.register(Listing, ItemAdmin)
 admin.site.register(User)
-admin.site.register(WatchList)
-admin.site.register(Comment)
+admin.site.register(WatchList, WatchedItemAdmin)
+admin.site.register(Comment, CommentAdmin)
+admin.site.register(Bid, BidAdmin)
+
 
 
