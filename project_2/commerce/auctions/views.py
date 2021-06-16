@@ -20,7 +20,9 @@ class commentForm(forms.ModelForm):
         fields = ['text']
 
 class bidForm(forms.ModelForm):
-    amount = forms.DecimalField()
+    amount = forms.DecimalField(widget=forms.NumberInput(
+        attrs={'placeholder': 'Place your bid'}
+    ))
 
     class Meta:
         model = Comment
@@ -88,17 +90,27 @@ def register(request):
 
 def item(request, item_id):
     if request.method == "POST":
-        f = WatchList.objects.create(author_id=request.user.id, item_id=item_id)
-        f.save()
+        WatchList.objects.create(author_id=request.user.id, item_id=item_id)
         return HttpResponseRedirect(reverse("item", args=[item_id]),{
             "message": "Successfully add to your Watchlist."
         })
     else:
+
+        # getting specific item
         item = Listing.objects.get(id=item_id)
-        # getting the Highest bid amount
-        highest = float(item.bidItem.filter(item_id=item_id).aggregate(Max('amount'))['amount__max'])
-        # getting the Highest Bidder
-        highestBidder = item.bidItem.get(amount=highest)
+
+        # getting the Highest bid amount of an item
+        if item.bidItem.all():
+            highest = float(item.bidItem.filter(item_id=item_id).aggregate(Max('amount'))['amount__max'])
+            # getting the Highest Bidder
+            f = item.bidItem.get(amount=highest)
+            highestBidder = str(f.author)
+        else:
+            highest = 0
+            highestBidder = ''
+
+
+        # Handling for an item is in Watchlist or not
         try:
             watchitem = WatchList.objects.get(item_id=item.id, author_id=request.user.id)
         except WatchList.DoesNotExist:
@@ -107,7 +119,7 @@ def item(request, item_id):
                 "form": commentForm,
                 "bidsform": bidForm,
                 "highest": highest,
-                "highestBidder": highestBidder.author
+                "highestBidder": highestBidder,
             })
         else:
             return render(request, "auctions/item.html",{
@@ -116,7 +128,7 @@ def item(request, item_id):
                     "form": commentForm,
                     "bidsform": bidForm,
                     "highest": highest,
-                    "highestBidder": highestBidder.author
+                    "highestBidder": highestBidder
                 })
 
 
@@ -146,19 +158,23 @@ def removeWatchList(request, item_id):
 
 def comment(request, item_id):
     if request.method == 'POST':
+
+        # getting comment and save
         form = commentForm(request.POST)
         if form.is_valid():
             com = form.cleaned_data["text"]
-            f = Comment.objects.create(text=com, post_id=item_id, author_id=request.user.id)
-            f.save()
+            Comment.objects.create(text=com, post_id=item_id, author_id=request.user.id)
         return HttpResponseRedirect(reverse("item", args=[item_id]))
 
 
 def bid(request, item_id):
-    if reques.method == 'POST':
+    if request.method == 'POST':
+
+        # getting bid and save
         form = bidForm(request.POST)
         if form.is_valid():
-            amount = form.cleared_data["amount"]
-            f = Bid.objects.create(amount=amount, item_id=item_id, author=request.user.id)
-            f.save()
+            amount = form.cleaned_data["amount"]
+            Bid.objects.create(amount=amount, item_id=item_id, author_id=request.user.id)
         return HttpResponseRedirect(reverse("item", args=[item_id]))
+
+

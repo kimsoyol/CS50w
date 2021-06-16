@@ -7,6 +7,7 @@
             {% if message %}
             <div class="alert alert-success" role="alert">{{ message }}</div>
             {% endif %}
+
             <div>
                 {% if item.id == watchitem.item.id %}
                     <p>This item is already in your Watchlist.</p>
@@ -22,6 +23,7 @@
                 {% endif %}
             </div>
 
+            <!--Liting item-->
             <div>
                 <p><h1>Listing: {{ item.item }}</h1></p>
                 <img src="{{ item.image.url }}" style="width:350px;height:400px;">
@@ -36,16 +38,22 @@
                         {% csrf_token %}
                         {% if item.bidItem.all %}
                             <div>
-                                Current bid: ${{ highest }} by {{ highestBidder }}
+                                Total bid: {{ item.bidItem.count }}
                                 <br>
-                                {{ item.bidItem.count }}
+                                Current bid: <strong>${{ highest }}</strong> by 
+                                {% ifequal user.username highestBidder %}
+                                    <strong>You</strong>
+                                {% else %}
+                                    <strong>{{ highestBidder }}</strong>
+                                {% endifequal %}
                             </div>
                         {% else %}
-                            <div class='p-2'>no Bid yet.</div>
+                            <div>No Bid yet.</div>
                         {% endif %}
-
-                        {{ bidsform.amount }}
+                        <div>
+                            {{ bidsform.amount }}
                         <button type='submit' class='btn btn-success'>Bid</button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -53,7 +61,7 @@
             <!--item detail-->
             <h3>Deatils</h3>
             <ul>
-                <li>Listed by: {{ item.author }} </li>
+                <li>Listed by: <strong>{{ item.author }}</strong> </li>
                 
                 {% if item.category %}
                     <li>Category: {{ item.category }}</li>
@@ -83,11 +91,9 @@
             <div>
             <hr>
             {% for comment in item.comments.all %}
-                <h6>{{ comment.author }}</h6>
+                User: <strong>{{ comment.author }}</strong>
                 <p>{{ comment.text }}</p>
-                <ul class="list-unstyled list-inline media-detail pull-left">
-                    <li><i class="caleandar"></i>{{ comment.date }}</li>
-                </ul>
+                <i class="text-black-50">{{ comment.date }}</i>
                 <hr>
             {% endfor %}
             </div>
