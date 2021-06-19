@@ -5,14 +5,23 @@ from django.urls import reverse
 class User(AbstractUser):
     pass
 
+class Category(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f"{self.name}" 
+     
 
 class Listing(models.Model):
+
+    categoryChoices = [('Fashion', 'Fashion'), ('Home', 'Home'), ('Electronics', 'Electronics'), ('Toy', 'Toy')]
+
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     item = models.CharField(max_length=50)
     price = models.DecimalField(max_digits=19, decimal_places=2)
     image = models.ImageField( upload_to='images/', height_field=None, width_field=None, max_length=None)
     description = models.TextField(max_length=50, blank=True)
-    category = models.CharField(max_length=100, blank=True)
+    categories = models.ForeignKey(Category, blank=True , on_delete=models.CASCADE, null=True, related_name='itemCategory')
     date = models.DateTimeField(auto_now_add=True)
     active = models.BooleanField(default=True)
 
